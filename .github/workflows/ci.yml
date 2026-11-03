@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  minify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./
+        with:
+          path: test
+
+      - name: Check line numbers and rename
+        shell: bash
+        run: |
+          grep -q 'local a=1' test/fixture.lua
+          test "$(wc -l < test/fixture.lua)" -eq 4

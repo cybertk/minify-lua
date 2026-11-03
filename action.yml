@@ -1,0 +1,27 @@
+name: Minify Lua
+description: Minify Lua in place without changing line numbers
+author: cybertk
+
+branding:
+  icon: minimize-2
+  color: blue
+
+inputs:
+  path:
+    description: Directory to search for Lua files. Relative paths start at the workspace root.
+    required: false
+    default: "."
+  exclude:
+    description: Comma-separated directory names to skip.
+    required: false
+    default: ".git,Libs,Embeds"
+
+runs:
+  using: composite
+  steps:
+    - name: Minify Lua
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      env:
+        MINIFY_EXCLUDE: ${{ inputs.exclude }}
+      run: python3 "$GITHUB_ACTION_PATH/minify_lua.py" --exclude "$MINIFY_EXCLUDE"
