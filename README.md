@@ -30,5 +30,8 @@ Skip extra directories, or minify only one subtree:
 
 ```bash
 python3 minify_lua.py
+python3 minify_lua.py --tracked
 python3 minify_lua.py --exclude .git,Libs path/to/dir
 ```
+
+`--tracked` limits the run to Lua files listed by `git ls-files`. Set `tracked: true` on the action for the same filter.

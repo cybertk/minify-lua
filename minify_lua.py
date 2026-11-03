@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import pathlib
 import string
+import subprocess
 import sys
 
 MULTI_SYMBOLS = (
@@ -742,6 +743,22 @@ def minify_file(path: pathlib.Path) -> bool:
     return False
 
 
+def tracked_lua_files() -> set[pathlib.Path]:
+    root = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    listed = subprocess.run(
+        ["git", "-C", root, "ls-files", "-z", "--", "*.lua"],
+        check=True,
+        capture_output=True,
+    ).stdout
+    base = pathlib.Path(root)
+    return {base.joinpath(rel.decode()).resolve() for rel in listed.split(b"\0") if rel}
+
+
 def iter_lua_files(root: pathlib.Path, skip: set[str]) -> list[pathlib.Path]:
     files: list[pathlib.Path] = []
     for path in root.rglob("*.lua"):
@@ -763,6 +780,11 @@ def main(argv: list[str] | None = None) -> int:
         default=".git,Libs,Embeds",
         help="Comma-separated directory names to skip while searching.",
     )
+    parser.add_argument(
+        "--tracked",
+        action="store_true",
+        help="Only minify Lua files tracked by git.",
+    )
     args = parser.parse_args(argv)
     skip = {part.strip() for part in args.exclude.split(",") if part.strip()}
     if args.paths:
@@ -775,6 +797,9 @@ def main(argv: list[str] | None = None) -> int:
                 targets.append(path)
     else:
         targets = iter_lua_files(pathlib.Path("."), skip)
+    if args.tracked:
+        tracked = tracked_lua_files()
+        targets = [path for path in targets if path.resolve() in tracked]
 
     changed = 0
     for path in targets:

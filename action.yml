@@ -15,6 +15,10 @@ inputs:
     description: Comma-separated directory names to skip.
     required: false
     default: ".git,Libs,Embeds"
+  tracked:
+    description: Only minify Lua files tracked by git.
+    required: false
+    default: "false"
 
 runs:
   using: composite
@@ -24,4 +28,10 @@ runs:
       working-directory: ${{ inputs.path }}
       env:
         MINIFY_EXCLUDE: ${{ inputs.exclude }}
-      run: python3 "$GITHUB_ACTION_PATH/minify_lua.py" --exclude "$MINIFY_EXCLUDE"
+        MINIFY_TRACKED: ${{ inputs.tracked }}
+      run: |
+        args=(--exclude "$MINIFY_EXCLUDE")
+        if [ "$MINIFY_TRACKED" = "true" ]; then
+          args+=(--tracked)
+        fi
+        python3 "$GITHUB_ACTION_PATH/minify_lua.py" "${args[@]}"
