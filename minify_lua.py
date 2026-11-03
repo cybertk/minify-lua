@@ -2,7 +2,7 @@
 """Minify Lua without changing line numbers.
 
 Comments are removed. Whitespace that only affects readability is removed.
-Local variables, parameters, and loop variables are renamed to shorter names.
+Pass --rename-locals to also shorten local variables, parameters, and loop variables.
 Newlines are kept, including blank lines and newlines inside long strings and
 long comments, so every remaining token stays on its original line.
 
@@ -722,8 +722,11 @@ def _rename_locals(src: str) -> str:
     return "\n".join(out)
 
 
-def minify_lua(src: str) -> str:
-    return _rename_locals(_strip_lua(src))
+def minify_lua(src: str, *, rename_locals: bool = False) -> str:
+    stripped = _strip_lua(src)
+    if not rename_locals:
+        return stripped
+    return _rename_locals(stripped)
 
 
 def _line_count(text: str) -> int:
@@ -732,9 +735,9 @@ def _line_count(text: str) -> int:
     return text.count("\n") + (0 if text.endswith("\n") else 1)
 
 
-def minify_file(path: pathlib.Path) -> bool:
+def minify_file(path: pathlib.Path, *, rename_locals: bool = False) -> bool:
     original = path.read_text(encoding="utf-8")
-    minified = minify_lua(original)
+    minified = minify_lua(original, rename_locals=rename_locals)
     if _line_count(original) != _line_count(minified):
         raise RuntimeError(f"line count changed for {path}")
     if minified != original:
@@ -785,6 +788,11 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Only minify Lua files tracked by git.",
     )
+    parser.add_argument(
+        "--rename-locals",
+        action="store_true",
+        help="Shorten local variables, parameters, and loop variables.",
+    )
     args = parser.parse_args(argv)
     skip = {part.strip() for part in args.exclude.split(",") if part.strip()}
     if args.paths:
@@ -803,7 +811,7 @@ def main(argv: list[str] | None = None) -> int:
 
     changed = 0
     for path in targets:
-        if minify_file(path):
+        if minify_file(path, rename_locals=args.rename_locals):
             changed += 1
             print(path)
     print(f"minified {changed} file(s)", file=sys.stderr)

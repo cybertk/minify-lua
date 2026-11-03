@@ -19,6 +19,10 @@ inputs:
     description: Only minify Lua files tracked by git.
     required: false
     default: "false"
+  rename-locals:
+    description: Shorten local variables, parameters, and loop variables.
+    required: false
+    default: "false"
 
 runs:
   using: composite
@@ -29,9 +33,13 @@ runs:
       env:
         MINIFY_EXCLUDE: ${{ inputs.exclude }}
         MINIFY_TRACKED: ${{ inputs.tracked }}
+        MINIFY_RENAME_LOCALS: ${{ inputs.rename-locals }}
       run: |
         args=(--exclude "$MINIFY_EXCLUDE")
         if [ "$MINIFY_TRACKED" = "true" ]; then
           args+=(--tracked)
+        fi
+        if [ "$MINIFY_RENAME_LOCALS" = "true" ]; then
+          args+=(--rename-locals)
         fi
         python3 "$GITHUB_ACTION_PATH/minify_lua.py" "${args[@]}"

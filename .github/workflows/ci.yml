@@ -14,8 +14,8 @@ jobs:
         with:
           path: test
 
-      - name: Check line numbers and rename
+      - name: Check line numbers and keep local names
         shell: bash
         run: |
-          grep -q 'local a=1' test/fixture.lua
+          grep -q 'local namespace=1' test/fixture.lua
           test "$(wc -l < test/fixture.lua)" -eq 4

@@ -4,8 +4,8 @@ GitHub Action that minifies Lua files in place.
 
 - Comments are removed.
 - Whitespace that only affects readability is removed.
-- Local variables, parameters, and loop variables are renamed to shorter names.
 - Every token stays on its original line.
+- With `--rename-locals`, local variables, parameters, and loop variables are renamed to shorter names. This is off by default.
 - Globals, table fields, and the implicit `self` on method definitions are left unchanged.
 
 The action uses Python 3 from the runner. It has no third-party dependencies.
@@ -30,8 +30,9 @@ Skip extra directories, or minify only one subtree:
 
 ```bash
 python3 minify_lua.py
+python3 minify_lua.py --rename-locals
 python3 minify_lua.py --tracked
 python3 minify_lua.py --exclude .git,Libs path/to/dir
 ```
 
-`--tracked` limits the run to Lua files listed by `git ls-files`. Set `tracked: true` on the action for the same filter.
+`--tracked` limits the run to Lua files listed by `git ls-files`. Set `tracked: true` on the action for the same filter. Set `rename-locals: true` to shorten local names.
